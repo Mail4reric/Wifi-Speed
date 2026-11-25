@@ -1,0 +1,15 @@
+# Personal data created at run time (device MACs, names, history, logs, settings, PIN hash)
+MonitorData/
+
+# Build output
+dist/
+
+# Generated / personal assets (put your own GIFs and voice clips here; they are not committed)
+assets/*
+!assets/.gitkeep
+!assets/README.md
+
+# Misc
+*.tmp
+popup*.png
+*.log
