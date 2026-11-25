@@ -1366,6 +1366,22 @@ function Change-AdminPin {
     Write-Log 'admin PIN changed'; Show-Stub 'Admin PIN changed.'
 }
 
+# ---- Clear history: speed + Full-test history and the dashboard. Local files only - nothing is stored on GitHub.
+function Clear-History {
+    if (-not (Require-Admin)) { return }
+    $r = Show-Msg ("Delete the saved speed-test and Full-test history and the dashboard report?`r`n`r`n" +
+                   "Your device names, settings and PIN are kept.`r`nThis only removes files on this PC and cannot be undone.") 'Clear history' 'YesNo' 'Warning' 'Button2'
+    if ($r -ne 'Yes') { return }
+    $n = 0
+    foreach ($f in 'history.csv', 'speed-log.csv', 'last-run.json', 'dashboard.html') {
+        $p = Join-Path $DataDir $f
+        if (Test-Path $p) { try { Remove-Item $p -Force; $n++ } catch { Write-Log "clear history $f : $_" } }
+    }
+    $State.SpeedText = '--'; $form.Invalidate()
+    Write-Log "history cleared ($n files)"
+    Show-Stub 'History cleared. New tests will start a fresh history.'
+}
+
 # ---- Start with Windows: a shortcut in the user's Startup folder (no admin, no registry)
 function Get-StartupLinkPath { Join-Path ([Environment]::GetFolderPath('Startup')) 'Micro Wi-Fi Guard.lnk' }
 function Set-Startup([bool]$on) {
@@ -1754,6 +1770,9 @@ $miAdmin.Add_Click({ if (Test-AdminActive) { Lock-Admin } else { [void](Require-
 $miPin = New-Object Windows.Forms.ToolStripMenuItem('Change admin PIN...')
 $miPin.Add_Click({ Change-AdminPin })
 [void]$menu.Items.Add($miPin)
+$miClear = New-Object Windows.Forms.ToolStripMenuItem('Clear history... (admin)')
+$miClear.Add_Click({ Clear-History })
+[void]$menu.Items.Add($miClear)
 $menu.Add_Opening({ $miAdmin.Text = $(if (Test-AdminActive) { 'Lock admin view' } else { 'Unlock admin view...' }) })
 $miVoice = New-Object Windows.Forms.ToolStripMenuItem('Voice alerts (Micro talks)')
 $miVoice.CheckOnClick = $true; $miVoice.Checked = [bool]$Settings.Voice
